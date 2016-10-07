@@ -1,0 +1,11 @@
+Creating Tables
+
+create table airports ( Airport_ID integer, Name text, City text, Country text, IATA_FAA text, ICAO text, Latitude real, Longitude real, Altitude real, Timezone real, DST text, Tz_database_time_zone text);
+create table airlines ( Airline_ID integer, Name text, Alias text, IATA text, ICAO text, Callsign text, Country text, Active text);
+create table routes ( Airline text, Airline_ID integer, Source_airport text, Source_airport_ID integer, Destination_airport text, Destination_airport_ID integer, Codeshare text, Stops integer, Equipment text);
+
+Importing airports.dat
+
+.import airports.dat airports
+.import airlines.dat airlines
+.import routes.dat routes

@@ -1,0 +1,7 @@
+sqlite> CREATE TABLE poi (id INTEGER, uid INTEGER, lat REAL, lon REAL);
+sqlite> .separator "\t"
+sqlite> .import poi.tsv poi
+
+sqlite> CREATE TABLE poi_tag (id INTEGER, key TEXT, value TEXT);
+sqlite> .separator "\t"
+sqlite> .import poi_tag.tsv poi_tag
