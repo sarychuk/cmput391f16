@@ -1,0 +1,9 @@
+CREATE VIRTUAL TABLE poi_index USING rtree(
+   id,              -- Integer primary key
+   minLat, maxLat,      -- Minimum and maximum Lat coordinate
+   minLon, maxLon,      -- Minimum and maximum Lon coordinate
+);
+
+INSERT INTO poi_index (id, minLat, maxLat, minLon, maxLon)
+       SELECT id, lat, lat+10, lon, lon+10
+	   from poi group by id;
