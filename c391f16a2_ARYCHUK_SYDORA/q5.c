@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "sqlite3.h"
+#include <random.h>
 
 /*
 Q5 15pts
@@ -18,7 +19,7 @@ Write a C program, in a file called q5.c that:
     2. Computes the average time (out of 20 runs for each query rectangle) 
     to find the total number of objects in that square, using the R-Tree
     and using the standard SQLite indexes (only).
-    
+
     3. Prints the average times for each scenario after all runs.
 
 The output of the program should look like this:
@@ -38,9 +39,9 @@ int main(int argc, char **argv)
 
   	int rc;
 
-  	if( argc!=2 )
+  	if( argc!=3 )
     {
-    	  fprintf(stderr, "Usage: %s <database file>\n", argv[0]);
+    	  fprintf(stderr, "Usage: %s <database file> <side length>\n", argv[0]);
     	  return(1);
   	}
 
@@ -52,9 +53,11 @@ int main(int argc, char **argv)
       	return(1);
   	}
 
+    double length = argv[2];
 
-    // This select is to check to see if the lat,lon have been projected or not.
-    //char *sql_select = "select lat,lon from poi limit 1";
+
+    // Selects all poi
+    //char *sql_select = SELECT * FROM poi indexed BY poi_comp_index WHERE lat > ? and lon > ? and lat < ? and lon < ?;
 
     // This SQL statement updates the lat and lon to their projected values on a 1000,1000 grid
     char *sql_stmt = "update poi " \
