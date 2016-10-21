@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "sqlite3.h"
-#include <random.h>
+#include <time.h>
 
 /*
 Q5 15pts
@@ -35,9 +35,11 @@ Average runtime without r-tree: ... ms
 int main(int argc, char **argv)
 {
 	  sqlite3 *db; //the database
-	  sqlite3_stmt *stmt; //the select statement
+	  sqlite3_stmt *stmtr, *stmti; //the select statement
 
-  	int rc;
+    srand(time(NULL));
+
+  	int rci, rcr;
 
   	if( argc!=3 )
     {
@@ -45,37 +47,141 @@ int main(int argc, char **argv)
     	  return(1);
   	}
 
-  	rc = sqlite3_open(argv[1], &db);
-  	if( rc )
+  	rci = sqlite3_open(argv[1], &db);
+  	if( rci )
     {
       	fprintf(stderr, "Can't open database: %s\n", sqlite3_errmsg(db));
       	sqlite3_close(db);
       	return(1);
   	}
 
-    double length = argv[2];
+    int length = atoi(argv[2]);
+
+    double lstRandY[100];
+
+    double lstRandX[100];
+
+    int i, j = 0;
+
+    for(i = 0 ; i < 100 ; i++) 
+    {
+        lstRandX[i] = (rand() % (1000 - length));
+    }
+
+    for(i = 0 ; i < 100 ; i++) 
+    {        
+        lstRandY[i] = (rand() % (1000 - length));
+    }
+
+    clock_t timeArrayFinIndex[20][100];
+
+    clock_t timeArrayFinRTree[20][100];
+
+    // Selects all poi from poi_comp_index 
+    char *sql_index = "SELECT * " \
+                          "FROM poi indexed BY poi_comp_index " \
+                          "WHERE lat >= ? and lon >= ? " \
+                          "and lat <= ? and lon <= ?;";
+
+    // Selects all poi from poi_index from R-Tree
+    char *sql_r_tree = "SELECT * " \
+                          "FROM poi_index " \
+                          "WHERE minLat >= ? and minLon >= ? " \
+                          "and maxLat <= ? and maxLon <= ?;";
 
 
-    // Selects all poi
-    //char *sql_select = SELECT * FROM poi indexed BY poi_comp_index WHERE lat > ? and lon > ? and lat < ? and lon < ?;
+    rci = sqlite3_prepare_v2(db, sql_index, -1, &stmti, 0);
+    rcr = sqlite3_prepare_v2(db, sql_r_tree, -1, &stmtr, 0);
 
-    // This SQL statement updates the lat and lon to their projected values on a 1000,1000 grid
-    char *sql_stmt = "update poi " \
-                      "set lat=((((lat - 48.06000) * (1000 - 0)) / (48.24900 - 48.06000)) + 0), " \
-                      "lon=((((lon - 11.35800) * (1000 - 0)) / (11.72400 - 11.35800)) + 0);";
+    if (rci != SQLITE_OK) 
+      {  
+          fprintf(stderr, "Preparation failed: %s\n", sqlite3_errmsg(db));
+          sqlite3_close(db);
+          return 1;
+      }   
 
-  	rc = sqlite3_prepare_v2(db, sql_stmt, -1, &stmt, 0);
+    if (rcr != SQLITE_OK) 
+      {  
+          fprintf(stderr, "Preparation failed: %s\n", sqlite3_errmsg(db));
+          sqlite3_close(db);
+          return 1;
+      }   
 
-    if (rc != SQLITE_OK) 
-    {  
-        fprintf(stderr, "Preparation failed: %s\n", sqlite3_errmsg(db));
-        sqlite3_close(db);
-        return 1;
-    }    
 
-    while((rc = sqlite3_step(stmt)) == SQLITE_ROW) { }
+    for (i = 0; i < 20; ++i) 
+    {
 
-    sqlite3_finalize(stmt); //always finalize a statement
+      for (j = 0; j < 100; ++j) 
+      {
+        clock_t start = clock();
+        clock_t diff = 0;
+        int msec = 0;
+
+        sqlite3_bind_double(stmti, 1, lstRandX[i]);
+        sqlite3_bind_double(stmti, 2, lstRandY[i]);
+        sqlite3_bind_double(stmti, 3, lstRandX[i] + length);
+        sqlite3_bind_double(stmti, 4, lstRandY[i] + length);      
+
+        while((rci = sqlite3_step(stmti)) == SQLITE_ROW) { }
+
+        diff = (clock() - start);
+    	msec = ((diff * 1000) / CLOCKS_PER_SEC);
+
+        timeArrayFinIndex[i][j] = msec;
+
+        sqlite3_reset(stmti);
+
+        start = clock();
+        diff = 0;
+
+        sqlite3_bind_double(stmtr, 1, lstRandX[i]);
+        sqlite3_bind_double(stmtr, 2, lstRandY[i]);
+        sqlite3_bind_double(stmtr, 3, lstRandX[i] + length);
+        sqlite3_bind_double(stmtr, 4, lstRandY[i] + length);      
+
+        while((rcr = sqlite3_step(stmtr)) == SQLITE_ROW) { }
+
+        diff = (clock() - start);
+    	msec = ((diff * 1000) / CLOCKS_PER_SEC);
+
+        timeArrayFinRTree[i][j] = msec;
+
+        msec = 0;
+
+        sqlite3_reset(stmtr);
+      }
+    } 
+
+    //output
+    double outer_count_i = 0;
+    double outer_count_r = 0;
+    for (i = 0; i < 100; ++i)
+    {
+      double inner_count_i = 0;
+      double inner_count_r = 0;
+      for (j = 0; j < 20; ++j) 
+      {
+        inner_count_r += timeArrayFinRTree[j][i];
+
+        inner_count_i += timeArrayFinIndex[j][i];
+      }
+      outer_count_i += (inner_count_i / 20);
+      outer_count_r += (inner_count_r / 20);
+    }
+
+    double rtime = (outer_count_r / 100);
+    double itime = (outer_count_i / 100);
+
+    sqlite3_finalize(stmtr);
+    sqlite3_finalize(stmti);
+
+    sqlite3_close(db);
+
+    printf("Parameter l: %d\n", length);
+
+    printf("Average runtime with r-tree: %f\n", rtime);
+
+    printf("Average runtime without r-tree: %f\n", itime);
 
     return 0;
 }
