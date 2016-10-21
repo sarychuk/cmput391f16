@@ -1,0 +1,11 @@
+Parameter: | Mean RT with Rtree | Mean RT without Rtree
+---------------------------------------------------------
+   25      |        0.00        |      0.50
+   50      |        0.00      |      0.95
+   75      |              |
+   100     |                    |
+   125     |                    |
+
+
+
+From the table above we can conclude that R tree is faster.
