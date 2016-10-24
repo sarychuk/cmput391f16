@@ -35,7 +35,7 @@ int main(int argc, char **argv)
 	//the statments
   	char *sql_stmt = "SELECT * "\
   			 "FROM poi_index pi, poi_tag pt "\
-  			 "WHERE (pt.id = pi.id AND pt.value LIKE ?) "\
+  			 "WHERE (pt.id = pi.id AND pt.value LIKE ? AND pt.key like 'class') "\
   			 	"AND pi.minLat>=? AND pi.maxLat<=? "\
   			   	"AND pi.minLon>=? AND pi.maxLon<=?;";
 
