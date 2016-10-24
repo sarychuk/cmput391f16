@@ -11,7 +11,7 @@ q4:
 	$(CC) -g q4.c -o q4 sqlite3.c -lm $(CFLAGS) $(RTREE)
 
 q5:
-	$(CC) -g q5.c -o q5 sqlite3.c -lm $(CFLAGS) $(RTREE)
+	$(CC) -g q5.c -o q5 sqlite3.c $(CFLAGS) $(RTREE)
 
 q7: 
 	$(CC) -g q7.c -o q7 sqlite3.c $(CFLAGS)
