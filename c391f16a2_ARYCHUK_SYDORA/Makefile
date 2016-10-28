@@ -1,6 +1,6 @@
 CC = gcc
 CFLAGS = -lpthread -ldl
-RTREE = -DQSLITE_ENABLE_RTREE=1
+RTREE = -DSQLITE_ENABLE_RTREE=1
 
 all: q0 q4 q5 q7 q8
 
