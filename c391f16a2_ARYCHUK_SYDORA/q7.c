@@ -18,49 +18,45 @@ full marks even if your program is not the fastest among all submissions.
 
 int nearestNeighborSearch(node, point, nearest)
 {
-
-  /*
-  Node      node // Current NODE
-  Point     point // Search POINT
-  NearestN  Nearest // nearest neighbor
-
-  //local vars
-  Node        newNode
-  Brancharray branchlist
-  integer     dist,last,i
-
-  // At leaf level - compute distance to actual objects
-  If Node.type == LEAF
-    FOR i := 1 to Node.count
-      dist := objectDIST(Point,Node.branch_i.rect)
-      If(dist < Nearest.dist)
-        Nearest.dist := dist
-        Nearest.rect := Node.branch_i.rect
-
-  // Non-leaf level - order, prune and visit nodes
-  Else
-
-    // Generate Active Branch List
-    genBranchList(Point, Node, branchList)
-
-    // Sort ABL based on ordering metric values
-    sortBranchList(branchList)
-
-    // Perform Downward Pruning
-    // (may discard all branches)
-    last = pruneBranchList(Node, Point, Nearest, branchList)
-
-    // Iterate through the Active Branch List
-    For i := 1 to last
-      newNode := Node.branch_branchList_i
-
-      // Recursively visit child nodes
-      nearestNeighborSearch(newNode, Point, Nearest)
-
-      // Perform Upward Pruning
-      last := pruneBranchList(Node, Point, Nearest, branchList)
-
-  */
+	/*
+		
+	//local vars
+	Node        newNode
+	Brancharray branchlist
+	integer     dist,last,i
+	
+	// At leaf level - compute distance to actual objects
+	If Node.type == LEAF
+		FOR i := 1 to Node.count
+			dist := objectDIST(Point,Node.branch_i.rect)
+	      		If(dist < Nearest.dist)
+				Nearest.dist := dist
+				Nearest.rect := Node.branch_i.rect
+	
+	// Non-leaf level - order, prune and visit nodes
+	Else
+	
+		// Generate Active Branch List
+		genBranchList(Point, Node, branchList)
+		
+		// Sort ABL based on ordering metric values
+		sortBranchList(branchList)
+	
+		// Perform Downward Pruning
+		// (may discard all branches)
+		last = pruneBranchList(Node, Point, Nearest, branchList)
+	
+		// Iterate through the Active Branch List
+		For i := 1 to last
+			newNode := Node.branch_branchList_i
+	
+			// Recursively visit child nodes
+			nearestNeighborSearch(newNode, Point, Nearest)
+	
+			// Perform Upward Pruning
+			last := pruneBranchList(Node, Point, Nearest, branchList)
+	
+	*/
   
 }
 
