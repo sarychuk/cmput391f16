@@ -16,7 +16,7 @@ full marks even if your program is not the fastest among all submissions.
 
 */
 
-int nearestNeighborSearch(node, point, nearest)
+int nearestNeighborSearch(node, pointx, pointy, nearest)
 {
 	/*
 		
@@ -62,54 +62,32 @@ int nearestNeighborSearch(node, point, nearest)
 
 int main(int argc, char **argv)
 {
-	  sqlite3 *db; //the database
-	  sqlite3_stmt *stmt; //the select statement
-
-    srand(time(NULL));
-
-  	int rc
-
-  	if( argc!=2 )
-    {
-    	  fprintf(stderr, "Usage: %s <database file> \n", argv[0]);
-    	  return(1);
-  	}
+	sqlite3 *db; //the database
+	sqlite3_stmt *stmt; //the select statement
+	
+	int rc;
+		
+	if( argc!=4 )
+	{
+		fprintf(stderr, "Usage: %s <database file, x, y> \n", argv[0]);
+		return(1);
+	}
 
   	rc = sqlite3_open(argv[1], &db);
   	if( rc )
-    {
-      	fprintf(stderr, "Can't open database: %s\n", sqlite3_errmsg(db));
-      	sqlite3_close(db);
-      	return(1);
+    	{
+      		fprintf(stderr, "Can't open database: %s\n", sqlite3_errmsg(db));
+      		sqlite3_close(db);
+      		return(1);
   	}
-
-    // Selects all poi from poi_comp_index 
-    char *sql_index = "SELECT * " \
-                          "FROM poi indexed BY poi_comp_index " \
-                          "WHERE lat >= ? and lon >= ? " \
-                          "and lat <= ? and lon <= ?;";
-
-    rc = sqlite3_prepare_v2(db, sql_index, -1, &stmti, 0);
-
-    if (rc != SQLITE_OK) 
-      {  
-          fprintf(stderr, "Preparation failed: %s\n", sqlite3_errmsg(db));
-          sqlite3_close(db);
-          return 1;
-      }   
-
-    sqlite3_bind_double(stmt, 1, lstRandX[i]);
-    sqlite3_bind_double(stmt, 2, lstRandY[i]);
-    sqlite3_bind_double(stmt, 3, lstRandX[i] + length);
-    sqlite3_bind_double(stmt, 4, lstRandY[i] + length);      
-
-    while((rc = sqlite3_step(stmt)) == SQLITE_ROW) { }
-
-    sqlite3_reset(stmt);
-
-    sqlite3_finalize(stmt);
-
-    sqlite3_close(db);
-
-    return 0;
+  	
+  	int x = argv[2];
+  	int y = argv[2];
+  	int inf = 999999999;
+  	
+  	int nearest_node = nearestNeighborSearch(1, x, y, inf);
+  	
+      	fprintf("%d\n", nearest_node);
+  	
+    	return 0;
 }
