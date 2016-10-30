@@ -237,9 +237,8 @@ int main(int argc, char **argv)
   	
   	int x = argv[2];
   	int y = argv[3];
-  	struct Point point = { x , y };
-  	struct Neighbour neighbour = { 0 , 99999999 , { 0 , 0 } };  	
-  	struct Neighbour nearestNeighbour = nearestNeighborSearch(1, point, neighbour);
+  	struct Point point = { x , y }; 	
+  	struct Neighbour nearestNeighbour = nearestNeighborSearch(1, point);
   	
       	fprintf("%d\n", nearestNeighbour.nodeno);
   	
