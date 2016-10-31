@@ -19,18 +19,18 @@ at least as fast (in asymptotic terms) as the one outlined in Section
 
 */
 
-struct Point
+typedef struct Point
 {
 	double x;
 	double y;
-};
+} Point;
 
-struct Neighbor
+typedef struct Neighbor
 {
 	double nodeno;
 	double dist;
 	struct Point rect;
-};
+} Neighbor;
 
 // get the min
 double min(double x, double y)
@@ -401,8 +401,8 @@ int main(int argc, char **argv)
   	int i;
   	for (i = 0; i < k; ++i)
   	{
-  		printf("%d POI id = %.0f, POI dist = %f\n", i, kNearest[i].nodeno, kNearest[i].dist);
-    	printf("POI lat = %f POI lon = %f\n\n", kNearest[i].rect.x, kNearest[i].rect.y);
+  		printf("POI id = %.0f, POI dist = %f\n", kNearest[i].nodeno, kNearest[i].dist);
+    	printf("POI minLat = %f POI minLon = %f\n\n", kNearest[i].rect.x, kNearest[i].rect.y);
   	}
   	
     return 0;
