@@ -17,12 +17,14 @@ full marks even if your program is not the fastest among all submissions.
 
 */
 
+// A point
 struct Point
 {
 	double x;
 	double y;
 };
 
+// a possible neighbour
 struct Neighbor
 {
 	int nodeno;
@@ -30,16 +32,19 @@ struct Neighbor
 	struct Point rect;
 };
 
+// return the min of the two values
 double min(double x, double y)
 {
   return (x) < (y) ? (x) : (y);
 }
 
+// the distance between the two points
 double distance(struct Point p1, struct Point p2)
 {
 	return sqrt(pow(p1.x - p2.x, 2) + pow(p1.y - p2.y, 2));
 }
 
+// MINDIST value
 double minDistance(struct Point point, double minLat, double maxLat, double minLon, double maxLon)
 {
   double r1, r2;
@@ -78,6 +83,7 @@ double minDistance(struct Point point, double minLat, double maxLat, double minL
 	return (iter1 + iter2);
 }
 
+// MINMAXDIST value
 double minMaxDistance(struct Point point, double minLat, double maxLat, double minLon, double maxLon)
 {
 	double rm1, rm2, rM1, rM2;
@@ -132,6 +138,7 @@ double minMaxDistance(struct Point point, double minLat, double maxLat, double m
   return min(iter1, iter2);
 }
 
+// The main recursive function
 struct Neighbor nearestNeighborSearch(int node, struct Point point, sqlite3 *db)
 {
 	int rc;
@@ -143,10 +150,10 @@ struct Neighbor nearestNeighborSearch(int node, struct Point point, sqlite3 *db)
 	// Sort ABL based on ordering metric values
 	//sortBranchList(branchList)
 	char *sql_children = "SELECT pit.* " \
-                        "FROM poi_index_temp pit, poi_index_parent pip " \
-                        "WHERE pit.nodeno = pip.nodeno AND " \
-                        "pip.parentnode = ? " \
-                        "ORDER BY minLat, minLon;";
+                         "FROM poi_index_temp pit, poi_index_parent pip " \
+                         "WHERE pit.nodeno = pip.nodeno AND " \
+                        	   "pip.parentnode = ? " \
+                         "ORDER BY minLat, minLon;";
 	rc = sqlite3_prepare_v2(db, sql_children, -1, &stmt, 0);
 	if (rc != SQLITE_OK) 
 	{  
@@ -154,13 +161,11 @@ struct Neighbor nearestNeighborSearch(int node, struct Point point, sqlite3 *db)
 	}
 	sqlite3_bind_int(stmt, 1, node);
 	
-	// Perform Downward Pruning
-	// (may discard all branches)
-	//last = pruneBranchList(Node, Point, Nearest, branchList)
+	// Get the minimum of the min distances so we can ignore the ones that have
+	// a minDist greater than this value. We are also checkin here if there are any children
 	int hasChildren = 0;
 	bool first = true;
 	double minMinMaxDist = 0;
-
 	while((rc = sqlite3_step(stmt)) == SQLITE_ROW)
 	{
 		hasChildren = 1;
@@ -174,7 +179,7 @@ struct Neighbor nearestNeighborSearch(int node, struct Point point, sqlite3 *db)
 		if(first)
 		{
 			minMinMaxDist = minMaxDist;	
-      first = false;
+      			first = false;
 		}
 		else
 		{
@@ -192,8 +197,6 @@ struct Neighbor nearestNeighborSearch(int node, struct Point point, sqlite3 *db)
 	first = true;
 	while((rc = sqlite3_step(stmt)) == SQLITE_ROW)
 	{
-		// Perform Upward Pruning
-		//last := pruneBranchList(Node, Point, Nearest, branchList)
 		double minLat = sqlite3_column_double(stmt, 1);
 		double maxLat = sqlite3_column_double(stmt, 2);
 		double minLon = sqlite3_column_double(stmt, 3);
@@ -203,6 +206,9 @@ struct Neighbor nearestNeighborSearch(int node, struct Point point, sqlite3 *db)
 		//double objDist = objDist(point, minLat, maxLat, minLon, maxLon);
 		if(minDist > minMinMaxDist)
 		{
+			// Perform Downward Pruning
+			// (may discard all branches)
+			//last = pruneBranchList(Node, Point, Nearest, branchList)
 			continue;
 		}
 		//if(objDist > minMinMaxDist)
@@ -213,6 +219,8 @@ struct Neighbor nearestNeighborSearch(int node, struct Point point, sqlite3 *db)
 		{			
 			if(minDist > newNearest.dist)
 			{
+				// Perform Upward Pruning
+				//last := pruneBranchList(Node, Point, Nearest, branchList)
 				continue;
 			}
 		}
@@ -222,13 +230,12 @@ struct Neighbor nearestNeighborSearch(int node, struct Point point, sqlite3 *db)
 	
 		// Recursively visit child nodes
 		//nearestNeighborSearch(newNode, Point, Nearest)
-
 		struct Neighbor tempNearest = nearestNeighborSearch(newNode, point, db);
-    if (first)
-    {
-      newNearest = tempNearest;
-      first = false;
-    }
+    	if (first)
+    	{
+    		newNearest = tempNearest;
+			first = false;
+		}
 		if(tempNearest.dist < newNearest.dist)
 		{
 			newNearest = tempNearest;
@@ -241,22 +248,22 @@ struct Neighbor nearestNeighborSearch(int node, struct Point point, sqlite3 *db)
 	//If Node.type == LEAF
 	if(hasChildren == 0)
 	{
+		// get the objects in the leaf node:
 		sqlite3_stmt *stmt_leaf;
 		char *sql_leaf = "SELECT pi.* "\
-				 "FROM poi_index_rowid rid, poi_index pi, poi_index_parent pip "\
-				 "WHERE pip.parentnode = ? AND "\
-				       "rid.rowid = pi.id AND "\
-				       "pip.nodeno = rid.nodeno;";
+				 		 "FROM poi_index_rowid rid, poi_index pi, poi_index_parent pip "\
+				 		 "WHERE pip.parentnode = ? AND "\
+				       		   "rid.rowid = pi.id AND "\
+				       		   "pip.nodeno = rid.nodeno;";
 		rc = sqlite3_prepare_v2(db, sql_leaf, -1, &stmt_leaf, 0);
 		if (rc != SQLITE_OK) 
 		{  
 			fprintf(stderr, "Preparation failed 2: %s\n", sqlite3_errmsg(db));
 		}
 		sqlite3_bind_int(stmt_leaf, 1, node);
-		int hasChildren = 0;
-		int minLatP, minLonP, maxLatP, maxLonP;
 		//FOR i := 1 to Node.count
-    first = true;
+    	first = true;
+    	// get the nearest of them:
 		while((rc = sqlite3_step(stmt_leaf)) == SQLITE_ROW)
 		{
 			//dist := objectDIST(Point,Node.branch_i.rect)
@@ -265,16 +272,16 @@ struct Neighbor nearestNeighborSearch(int node, struct Point point, sqlite3 *db)
 			double recty = sqlite3_column_double(stmt_leaf, 3);
 			struct Point rect = { rectx, recty };
 			double dist = distance(point, rect);
-	    //If(dist < Nearest.dist)
-      if (first)
-      {
-        struct Neighbor temp = { nodeno, dist, { rectx, recty } };
-        newNearest = temp;
-        first = false;
-      }
-	    if(dist < newNearest.dist)
-	    {
-	      newNearest.nodeno = nodeno;
+	    	//If(dist < Nearest.dist)
+      		if (first)
+      		{
+        		struct Neighbor temp = { nodeno, dist, { rectx, recty } };
+        		newNearest = temp;
+        		first = false;
+      		}
+	    	if(dist < newNearest.dist)
+	    	{
+	      		newNearest.nodeno = nodeno;
 				//Nearest.dist := dist
 				newNearest.dist = dist;
 				//Nearest.rect := Node.branch_i.rect
@@ -287,19 +294,22 @@ struct Neighbor nearestNeighborSearch(int node, struct Point point, sqlite3 *db)
 	return newNearest;
 }
 
+// Main function
 int main(int argc, char **argv)
 {
 	sqlite3 *db; //the database
 	sqlite3_stmt *stmt; //the select statement
 	
 	int rc;
-		
+	
+	// Check args
 	if( argc!=4 )
 	{
 		fprintf(stderr, "Usage: %s <database file, <x value>, <y value> \n", argv[0]);
 		return(1);
 	}
 
+	// Open DB
   	rc = sqlite3_open(argv[1], &db);
   	if( rc )
     	{
@@ -308,6 +318,7 @@ int main(int argc, char **argv)
       		return(1);
   	}
   	
+  	// Get and print the result:
   	double x = strtod(argv[2], NULL);
   	double y = strtod(argv[3], NULL);
   	struct Point point = { x , y }; 	
