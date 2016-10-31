@@ -17,36 +17,6 @@ To get full marks, your program must implement an algorithm that is
 at least as fast (in asymptotic terms) as the one outlined in Section 
 3.3 the Roussopoulos paper.
 
-If Node.type == LEAF
-	FOR i := 1 to Node.count
-		dist := objectDIST(Point,Node.branch_i.rect)
-      		If(dist < Nearest.dist)
-			Nearest.dist := dist
-			Nearest.rect := Node.branch_i.rect
-
-// Non-leaf level - order, prune and visit nodes
-Else
-
-	// Generate Active Branch List
-	genBranchList(Point, Node, branchList)
-	
-	// Sort ABL based on ordering metric values
-	sortBranchList(branchList)
-
-	// Perform Downward Pruning
-	// (may discard all branches)
-	last = pruneBranchList(Node, Point, Nearest, branchList)
-
-	// Iterate through the Active Branch List
-	For i := 1 to last
-		newNode := Node.branch_branchList_i
-
-		// Recursively visit child nodes
-		nearestNeighborSearch(newNode, Point, Nearest)
-
-		// Perform Upward Pruning
-		last := pruneBranchList(Node, Point, Nearest, branchList)
-
 */
 
 struct Point
@@ -57,7 +27,7 @@ struct Point
 
 struct Neighbor
 {
-	int nodeno;
+	double nodeno;
 	double dist;
 	struct Point rect;
 };
@@ -65,6 +35,11 @@ struct Neighbor
 double min(double x, double y)
 {
   return (x) < (y) ? (x) : (y);
+}
+
+double max(double x, double y)
+{
+	return (x) > (y) ? (x) : (y);
 }
 
 double distance(struct Point p1, struct Point p2)
@@ -113,61 +88,60 @@ double minDistance(struct Point point, double minLat, double maxLat, double minL
 double minMaxDistance(struct Point point, double minLat, double maxLat, double minLon, double maxLon)
 {
 	double rm1, rm2, rM1, rM2;
-  // check for rm_k values
-  if (point.x <= ((minLat + maxLat)/2))
-  {
-    rm1 = minLat;
-  }
-  else 
-  {
-    rm1 = maxLat;
-  }
+ 	// check for rm_k values
+	if (point.x <= ((minLat + maxLat)/2))
+	{
+		rm1 = minLat;
+	}
+	else 
+	{
+		rm1 = maxLat;
+	}
 
-  if (point.y <= ((minLon + maxLon)/2))
-  {
-    rm2 = minLon;
-  }
-  else 
-  {
-    rm2 = maxLon;
-  }
+	if (point.y <= ((minLon + maxLon)/2))
+	{
+		rm2 = minLon;
+	}
+	else 
+	{
+		rm2 = maxLon;
+	}
 
-  // check for rM_i values
-  if (point.x >= ((minLat + maxLat)/2))
-  {
-    rM1 = minLat;
-  }
-  else 
-  {
-    rM1 = maxLat;
-  }
+	// check for rM_i values
+	if (point.x >= ((minLat + maxLat)/2))
+	{
+		rM1 = minLat;
+	}
+	else 
+	{
+		rM1 = maxLat;
+	}
 
-  if (point.y >= ((minLon + maxLon)/2))
-  {
-    rM2 = minLon;
-  }
-  else 
-  {
-    rM2 = maxLon;
-  }
+	if (point.y >= ((minLon + maxLon)/2))
+	{
+		rM2 = minLon;
+	}
+	else 
+	{
+		rM2 = maxLon;
+	}
 
-  double partk1 = pow(abs(point.x - rm1),2);
-  double partk2 = pow(abs(point.y - rm2),2);
-  double parti1 = pow(abs(point.x - rM1),2);
-  double parti2 = pow(abs(point.y - rM2),2);
+	double partk1 = pow(abs(point.x - rm1),2);
+	double partk2 = pow(abs(point.y - rm2),2);
+	double parti1 = pow(abs(point.x - rM1),2);
+	double parti2 = pow(abs(point.y - rM2),2);
 
-  // calculate each stage of the sums (2 because of 2 dimensions, x and y)
-  double iter1 = (partk1 + parti2);
-  double iter2 = (partk2 + parti1);
+	// calculate each stage of the sums (2 because of 2 dimensions, x and y)
+	double iter1 = (partk1 + parti2);
+	double iter2 = (partk2 + parti1);
 
-  // return the sum of the iterations
-  return min(iter1, iter2);
+	// return the sum of the iterations
+	return min(iter1, iter2);
 }
 
-struct Neighbor nearestNeighborSearch(int node, struct Point point, sqlite3 *db)
+void nearestNeighborSearch(double node, struct Point point, sqlite3 *db, int k, struct Neighbor *kNearest)
 {
 	int rc;
-	struct Neighbor newNearest;
 	sqlite3_stmt *stmt;
 	// Get all the children
 	// Generate Active Branch List
@@ -202,7 +176,7 @@ struct Neighbor nearestNeighborSearch(int node, struct Point point, sqlite3 *db)
 		if(first)
 		{
 			minMinMaxDist = minMaxDist;	
-      first = false;
+      		first = false;
 		}
 		else
 		{
@@ -239,9 +213,14 @@ struct Neighbor nearestNeighborSearch(int node, struct Point point, sqlite3 *db)
 		//}
 		if(!first)
 		{			
-			if(minDist > newNearest.dist)
+
+			int i;
+			for (i = 0; i < k; ++i)
 			{
-				continue;
+				if(minDist > kNearest[i].dist)
+				{
+					continue;
+				}
 			}
 		}
 
@@ -251,16 +230,51 @@ struct Neighbor nearestNeighborSearch(int node, struct Point point, sqlite3 *db)
 		// Recursively visit child nodes
 		//nearestNeighborSearch(newNode, Point, Nearest)
 
-		struct Neighbor tempNearest = nearestNeighborSearch(newNode, point, db);
-    if (first)
-    {
-      newNearest = tempNearest;
-      first = false;
-    }
-		if(tempNearest.dist < newNearest.dist)
-		{
-			newNearest = tempNearest;
-		}
+		struct Neighbor tempNearest[k];
+		nearestNeighborSearch(newNode, point, db, k, &tempNearest);
+
+	    if (first)
+	    {
+	    	int i;
+	    	for (i = 0; i < k; ++i)
+	    	{
+		    	kNearest[i] = tempNearest[i];
+	    	}
+	      
+	     	first = false;
+	    }
+	   	
+
+  		double maxDist;
+  		int iter;
+  		int i;
+  		for (i = 0; i < k; ++i)
+  		{
+  			int j;
+
+  			// finds maxDist of kNearest[i]
+  			for (j = 0; j < k; ++j) 
+  			{
+  				if (j == 0)
+	  			{
+	  				maxDist = kNearest[j].dist;
+	  				iter = j;
+	  			}
+	  			else
+	  			{
+	  				if (maxDist < kNearest[j].dist)
+	  				{
+	  					iter = j;
+	  				}
+	  				maxDist = max(maxDist, kNearest[j].dist);
+	  			}
+  			}
+
+  			if (maxDist > tempNearest[i].dist)
+  			{
+  				kNearest[iter] = tempNearest[i];
+  			}
+  		}
 	}
 
 	sqlite3_finalize(stmt);
@@ -284,35 +298,56 @@ struct Neighbor nearestNeighborSearch(int node, struct Point point, sqlite3 *db)
 		int hasChildren = 0;
 		int minLatP, minLonP, maxLatP, maxLonP;
 		//FOR i := 1 to Node.count
-    first = true;
+    	first = true;
+    	int kCounter = 0;
 		while((rc = sqlite3_step(stmt_leaf)) == SQLITE_ROW)
 		{
 			//dist := objectDIST(Point,Node.branch_i.rect)
-			int nodeno = sqlite3_column_int(stmt_leaf, 0);
+			double nodeno = sqlite3_column_double(stmt_leaf, 0);
 			double rectx = sqlite3_column_double(stmt_leaf, 1);
 			double recty = sqlite3_column_double(stmt_leaf, 3);
 			struct Point rect = { rectx, recty };
 			double dist = distance(point, rect);
-	    //If(dist < Nearest.dist)
-      if (first)
-      {
-        struct Neighbor temp = { nodeno, dist, { rectx, recty } };
-        newNearest = temp;
-        first = false;
-      }
-	    if(dist < newNearest.dist)
-	    {
-	      newNearest.nodeno = nodeno;
-				//Nearest.dist := dist
-				newNearest.dist = dist;
-				//Nearest.rect := Node.branch_i.rect
-				newNearest.rect = rect;
-			}
+	    	//If(dist < Nearest.dist)
+
+	        struct Neighbor temp = { nodeno, dist, { rectx, recty } };
+
+	      	if (kCounter < k)
+	      	{
+		        kNearest[kCounter] = temp;
+		        ++kCounter;
+	      	}
+	      	else
+	      	{
+	      		int i;
+	      		double maxDist;
+	      		int iter;
+	      		for (i = 0; i < k; ++i)
+	      		{
+	      			if (i == 0)
+	      			{
+	      				maxDist = kNearest[i].dist;
+	      				iter = i;
+	      			}
+	      			else
+	      			{
+	      				if (maxDist < kNearest[i].dist)
+	      				{
+	      					iter = i;
+	      				}
+	      				maxDist = max(maxDist, kNearest[i].dist);
+	      			}
+	      		}
+
+	      		if(dist < maxDist)
+			    {
+			    	kNearest[iter] = temp;
+				}
+	      	}
 		}
+
 		sqlite3_finalize(stmt_leaf);
 	}
-
-	return newNearest;
 }
 
 int main(int argc, char **argv)
@@ -322,9 +357,9 @@ int main(int argc, char **argv)
 	
 	int rc;
 		
-	if( argc!=4 )
+	if( argc!= 5 )
 	{
-		fprintf(stderr, "Usage: %s <database file, <x value>, <y value> \n", argv[0]);
+		fprintf(stderr, "Usage: %s <database file, <x value>, <y value>, <k length> \n", argv[0]);
 		return(1);
 	}
 
@@ -338,11 +373,18 @@ int main(int argc, char **argv)
   	
   	double x = strtod(argv[2], NULL);
   	double y = strtod(argv[3], NULL);
-  	struct Point point = { x , y }; 	
-  	struct Neighbor nearestNeighbor = nearestNeighborSearch(1, point, db);
+  	int k = atoi(argv[4]);
+
+  	struct Point point = { x , y };
+  	struct Neighbor kNearest[k];
+  	nearestNeighborSearch(1, point, db, k, &kNearest);
   	
-    printf("nodeno = %d\n", nearestNeighbor.nodeno);
-    printf("rect.x = %f rect.y = %f\n", nearestNeighbor.rect.x, nearestNeighbor.rect.y);
+  	int i;
+  	for (i = 0; i < k; ++i)
+  	{
+  		printf("%d POI id = %.0f, POI dist = %f\n", i, kNearest[i].nodeno, kNearest[i].dist);
+    	printf("POI lat = %f POI lon = %f\n\n", kNearest[i].rect.x, kNearest[i].rect.y);
+  	}
   	
     return 0;
 }

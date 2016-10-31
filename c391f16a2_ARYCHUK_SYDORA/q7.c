@@ -27,7 +27,7 @@ struct Point
 // a possible neighbour
 struct Neighbor
 {
-	int nodeno;
+	double nodeno;
 	double dist;
 	struct Point rect;
 };
@@ -139,7 +139,7 @@ double minMaxDistance(struct Point point, double minLat, double maxLat, double m
 }
 
 // The main recursive function
-struct Neighbor nearestNeighborSearch(int node, struct Point point, sqlite3 *db)
+struct Neighbor nearestNeighborSearch(double node, struct Point point, sqlite3 *db)
 {
 	int rc;
 	struct Neighbor newNearest;
@@ -267,25 +267,25 @@ struct Neighbor nearestNeighborSearch(int node, struct Point point, sqlite3 *db)
 		while((rc = sqlite3_step(stmt_leaf)) == SQLITE_ROW)
 		{
 			//dist := objectDIST(Point,Node.branch_i.rect)
-			int nodeno = sqlite3_column_int(stmt_leaf, 0);
+			double nodeno = sqlite3_column_double(stmt_leaf, 0);
 			double rectx = sqlite3_column_double(stmt_leaf, 1);
 			double recty = sqlite3_column_double(stmt_leaf, 3);
 			struct Point rect = { rectx, recty };
 			double dist = distance(point, rect);
 	    	//If(dist < Nearest.dist)
-      		if (first)
-      		{
-        		struct Neighbor temp = { nodeno, dist, { rectx, recty } };
-        		newNearest = temp;
-        		first = false;
-      		}
+    		if (first)
+    		{
+      		struct Neighbor temp = { nodeno, dist, { rectx, recty } };
+      		newNearest = temp;
+      		first = false;
+    		}
 	    	if(dist < newNearest.dist)
 	    	{
-	      		newNearest.nodeno = nodeno;
-				//Nearest.dist := dist
-				newNearest.dist = dist;
-				//Nearest.rect := Node.branch_i.rect
-				newNearest.rect = rect;
+            newNearest.nodeno = nodeno;
+    				//Nearest.dist := dist
+    				newNearest.dist = dist;
+    				//Nearest.rect := Node.branch_i.rect
+    				newNearest.rect = rect;
 			}
 		}
 		sqlite3_finalize(stmt_leaf);
@@ -324,8 +324,8 @@ int main(int argc, char **argv)
   	struct Point point = { x , y }; 	
   	struct Neighbor nearestNeighbor = nearestNeighborSearch(1, point, db);
   	
-    printf("nodeno = %d\n", nearestNeighbor.nodeno);
-    printf("rect.x = %f rect.y = %f\n", nearestNeighbor.rect.x, nearestNeighbor.rect.y);
+    printf("POI id = %.0f \n", nearestNeighbor.nodeno);
+    printf("POI Lat = %f POI Lon = %f\n", nearestNeighbor.rect.x, nearestNeighbor.rect.y);
   	
     return 0;
 }
