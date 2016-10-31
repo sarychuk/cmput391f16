@@ -33,5 +33,5 @@ select * from temp_table_rowid;
 14|1
 select * from temp_table_parent;
 
-The reason that all the items here are in Node 1 is because te size of M is very large thus 
-it is not spliting. In q2 we used M=4.
+The reason that all the items here are in Node 1 is because te size of M is larger
+then the amount we inserted thus it is not spliting. In q2 we used M=4.
