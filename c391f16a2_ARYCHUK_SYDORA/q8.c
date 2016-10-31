@@ -5,15 +5,47 @@
 #include <stdbool.h>
 
 /*
-Q7 30pts
+Q8 15pts
 
-Write a C program, in a file called q7.c that takes a point (x1,y1) as input, 
-and prints the coordinates of the object that is its nearest neighbor, breaking ties arbitrarily.
+Write a C program, in a file called q8.c that takes a point (x1,y1)
+and k as input, and prints a list of the k nearest neighbors. You
+can do this, for instance, by implementing what is outlined in 
+Section 3.3 of the Roussopoulos paper.
 
-Marking breakdown: 15 pts for correctness, and 15 pts for efficiency. 
-To get full marks, your program must implement an algorithm that is at least as 
-fast (in asymptotic terms) as the one in the Roussopoulos paper. You can get 
-full marks even if your program is not the fastest among all submissions.
+Marking breakdown: 5 pts for correctness, and 10 pts for efficiency. 
+To get full marks, your program must implement an algorithm that is 
+at least as fast (in asymptotic terms) as the one outlined in Section 
+3.3 the Roussopoulos paper.
+
+If Node.type == LEAF
+	FOR i := 1 to Node.count
+		dist := objectDIST(Point,Node.branch_i.rect)
+      		If(dist < Nearest.dist)
+			Nearest.dist := dist
+			Nearest.rect := Node.branch_i.rect
+
+// Non-leaf level - order, prune and visit nodes
+Else
+
+	// Generate Active Branch List
+	genBranchList(Point, Node, branchList)
+	
+	// Sort ABL based on ordering metric values
+	sortBranchList(branchList)
+
+	// Perform Downward Pruning
+	// (may discard all branches)
+	last = pruneBranchList(Node, Point, Nearest, branchList)
+
+	// Iterate through the Active Branch List
+	For i := 1 to last
+		newNode := Node.branch_branchList_i
+
+		// Recursively visit child nodes
+		nearestNeighborSearch(newNode, Point, Nearest)
+
+		// Perform Upward Pruning
+		last := pruneBranchList(Node, Point, Nearest, branchList)
 
 */
 
@@ -142,11 +174,7 @@ struct Neighbor nearestNeighborSearch(int node, struct Point point, sqlite3 *db)
 	//genBranchList(Point, Node, branchList)	
 	// Sort ABL based on ordering metric values
 	//sortBranchList(branchList)
-	char *sql_children = "SELECT pit.* " \
-                        "FROM poi_index_temp pit, poi_index_parent pip " \
-                        "WHERE pit.nodeno = pip.nodeno AND " \
-                        "pip.parentnode = ? " \
-                        "ORDER BY minLat, minLon;";
+	char *sql_children = "SELECT pit.* FROM poi_index_temp pit, poi_index_parent pip WHERE pit.nodeno = pip.nodeno AND pip.parentnode = ? ORDER BY minLat, minLon;";
 	rc = sqlite3_prepare_v2(db, sql_children, -1, &stmt, 0);
 	if (rc != SQLITE_OK) 
 	{  
