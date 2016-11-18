@@ -1,0 +1,9 @@
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX dbr: <http://dbpedia.org/resource/>
+PREFIX dbo: <http://dbpedia.org/ontology/>
+PREFIX db: <http://dbpedia.org/>
+SELECT * WHERE {
+  ?lake rdf:type dbo:Lake .
+  ?lake dbo:location dbr:Jasper_National_Park
+} 
