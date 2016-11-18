@@ -55,14 +55,11 @@ int main(int argc, char **argv)
       	return(1);
   	}
 
+	// Get a 100 random values
     int length = atoi(argv[2]);
-
     double lstRandY[100];
-
     double lstRandX[100];
-
     int i, j = 0;
-
     for(i = 0 ; i < 100 ; i++) 
     {
         lstRandX[i] = (rand() % (1000 - length));
@@ -74,7 +71,6 @@ int main(int argc, char **argv)
     }
 
     clock_t timeArrayFinIndex[20][100];
-
     clock_t timeArrayFinRTree[20][100];
 
     // Selects all poi from poi_comp_index 
@@ -89,7 +85,7 @@ int main(int argc, char **argv)
                           "WHERE minLat >= ? and minLon >= ? " \
                           "and maxLat <= ? and maxLon <= ?;";
 
-
+	// Prepare
     rci = sqlite3_prepare_v2(db, sql_index, -1, &stmti, 0);
     rcr = sqlite3_prepare_v2(db, sql_r_tree, -1, &stmtr, 0);
 
@@ -107,12 +103,13 @@ int main(int argc, char **argv)
           return 1;
       }   
 
-
+	// Go over 20 then 100 so we are not caching the data and affecting the results:
     for (i = 0; i < 20; ++i) 
     {
 
       for (j = 0; j < 100; ++j) 
       {
+      	// Start the clock
         clock_t start = clock();
         clock_t diff = 0;
         int msec = 0;
@@ -127,10 +124,12 @@ int main(int argc, char **argv)
         diff = (clock() - start);
     	msec = ((diff * 1000) / CLOCKS_PER_SEC);
 
+		// save the value in the table
         timeArrayFinIndex[i][j] = msec;
 
         sqlite3_reset(stmti);
 
+		// Reset the clock
         start = clock();
         diff = 0;
 
@@ -144,6 +143,7 @@ int main(int argc, char **argv)
         diff = (clock() - start);
     	msec = ((diff * 1000) / CLOCKS_PER_SEC);
 
+		// save the value in the table
         timeArrayFinRTree[i][j] = msec;
 
         msec = 0;
@@ -152,7 +152,7 @@ int main(int argc, char **argv)
       }
     } 
 
-    //output
+	// average the 20 and 100 for each and show
     double outer_count_i = 0;
     double outer_count_r = 0;
     for (i = 0; i < 100; ++i)
@@ -177,6 +177,7 @@ int main(int argc, char **argv)
 
     sqlite3_close(db);
 
+    //output the results:
     printf("Parameter l: %d\n", length);
 
     printf("Average runtime with r-tree: %f\n", rtime);
