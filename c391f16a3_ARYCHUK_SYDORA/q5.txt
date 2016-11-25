@@ -1,0 +1,21 @@
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX dbo: <http://dbpedia.org/ontology/>
+PREFIX dbr: <http://dbpedia.org/resource/>
+PREFIX dbp: <http://dbpedia.org/property/>
+PREFIX dbc: <http://dbpedia.org/resource/Category:>
+PREFIX dct: <http://purl.org/dc/terms/>
+PREFIX dc: <http://purl.org/dc/elements/1.1/>
+SELECT ?CityName ?pop (COUNT(?city) as ?num) (?pop/?num as ?ratio) WHERE {
+  {
+    SELECT * WHERE {
+  	# In a plain text ASCII file called q5.txt write a query to find, for every city in Alberta that has a hospital, the name of the city, 
+  	# and the ratio of population over the number of hospitals, sorted in decreasing order of this ratio.
+  	?city dbo:type dbr:List_of_cities_in_Alberta .
+  	?hospital rdf:type dbo:Hospital .
+  	?hospital dbo:region ?city .
+  	?city dbp:populationTotal ?pop .
+    ?city dbp:name ?CityName
+	} GROUP BY ?city
+  }
+} ORDER BY Desc(?pop/?num)

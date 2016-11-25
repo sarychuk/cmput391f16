@@ -1,0 +1,19 @@
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX dbo: <http://dbpedia.org/ontology/>
+PREFIX dbp: <http://dbpedia.org/property/>
+PREFIX dbr: <http://dbpedia.org/resource/>
+PREFIX dbc: <http://dbpedia.org/resource/Category:>
+PREFIX dct: <http://purl.org/dc/terms/>
+SELECT ?TeamName ?Count WHERE {
+  	{
+		SELECT ?team (COUNT(?team) as ?Count) ?TeamName WHERE {
+  		#In a plain text ASCII file called q4.txt write a query to find the number of World Cup Final matches played by every national soccer team who has played in more than 3 finals.
+  		?team rdf:type dbo:SoccerClub .
+  		?team dbp:name ?TeamName .
+  		?final dct:subject dbc:FIFA_World_Cup_finals .
+  		?final dbp:team ?team
+		} GROUP BY ?team ?TeamName
+	}
+	FILTER(?Count >= 3) 
+} ORDER BY DESC(?Count)

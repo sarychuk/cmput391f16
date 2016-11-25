@@ -7,8 +7,9 @@ PREFIX db: <http://dbpedia.org/>
 PREFIX dbp: <http://dbpedia.org/property/>
 PREFIX dbc: <http://dbpedia.org/resource/Category:>
 PREFIX dct: <http://purl.org/dc/terms/>
-SELECT * WHERE {
+SELECT ?airportName ?city WHERE {
   ?airport rdf:type dbo:Airport .
   ?airport dct:subject dbc:National_Airports_System .
-  ?airport dbp:location ?city
-}
+  ?airport dbp:location ?city .
+  ?airport dbp:name ?airportName .
+} GROUP BY ?airportName
