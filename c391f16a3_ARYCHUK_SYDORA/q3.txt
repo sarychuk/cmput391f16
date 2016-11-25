@@ -4,7 +4,7 @@ PREFIX dbo: <http://dbpedia.org/ontology/>
 PREFIX dbr: <http://dbpedia.org/resource/>
 PREFIX dbp: <http://dbpedia.org/property/>
 PREFIX db: <http://dbpedia.org/>
-SELECT ?countryName (COUNT(?player) as ?Count) WHERE {
+SELECT ?country (COUNT(?player) as ?Count) WHERE {
   #In a plain text ASCII file called q3.txt write a query to find the number of South American soccer players who (appear in Wikipedia and) have played for a club in the Spanish "La Liga” that has never been relegated, grouping by country.
   ?country dct:subject dbc:Countries_in_South_America .
   ?city dbo:country ?country .
@@ -12,5 +12,4 @@ SELECT ?countryName (COUNT(?player) as ?Count) WHERE {
   ?club dct:subject dbc:Unrelegated_association_football_clubs .
   ?player dbo:team ?club .
   ?player dbo:birthPlace ?city .
-  ?country dbp:commonName ?countryName
 } ORDER BY ?country
