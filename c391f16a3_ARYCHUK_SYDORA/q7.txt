@@ -1,0 +1,3 @@
+Provide in a plain text ASCII file called q7.txt the SQL commands to create any indexes you find appropriate for your RDF store. Justify your choices. If you don't think indexes are necessary, explain why.
+
+

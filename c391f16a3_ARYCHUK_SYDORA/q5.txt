@@ -15,7 +15,7 @@ SELECT ?CityName ?pop (COUNT(?city) as ?num) (?pop/?num as ?ratio) WHERE {
   	?hospital rdf:type dbo:Hospital .
   	?hospital dbo:region ?city .
   	?city dbp:populationTotal ?pop .
-    ?city dbp:name ?CityName
+	?city dbp:name ?CityName
 	} GROUP BY ?city
   }
 } ORDER BY Desc(?pop/?num)

@@ -10,19 +10,19 @@ def main():
 	dbConn = sqlite3.connect(sys.argv[1])
 	rdfFile = open(sys.argv[2], "r")
 
-	# Use dbConn.execute() to create the execution statement
-	# Use dbConn.commit to push the query.
-
-	# Returning the rows of a select statement using a cursor
-	#cursor = conn.execute("SELECT id, name, address, salary  from COMPANY")
-	#for row in cursor:
-	#	print "ID = ", row[0]
-	#	print "NAME = ", row[1]
-	#	print "ADDRESS = ", row[2]
-	#	print "SALARY = ", row[3], "\n"
-
 	print("files opened")
+	
+	# Use dbConn.execute() to create the execution statement
+	for line in rdfFile:
+		splitLine = line.split()
+		if(splitLine[0] == "@prefix"):
+			newInsert = "INSERT INTO rdf_prefix VALUES ("+splitLine[1][0:-2]+", "+splitLine[2]+")"
+			dbConn.execute(newInsert)
+		
 
+	# Use dbConn.commit to push the query.
+	dbConn.commit()
+	
 	dbConn.close()
 	rdfFile.close()
 
