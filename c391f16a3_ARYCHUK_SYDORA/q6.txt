@@ -1,13 +1,47 @@
-Design a relational schema to represent an RDF data graph. Write in a plain text ASCII file called q6.txt a short report with:
-1) Your relational schema and the SQLite statements to create an empty database with that schema
+Design a relational schema to represent an RDF data graph. Write in a plain
+text ASCII file called q6.txt a short report with:
+1) Your relational schema and the SQLite statements to create an empty
+database with that schema
 
 CREATE TABLE rdf_triple (subject TEXT, predicate TEXT, object TEXT);
 
-2) A short (max 2 paragraphs) explanation of your strategy to convert the RDF data into a database according to that schema
+2) A short (max 2 paragraphs) explanation of your strategy to convert the RDF
+data into a database according to that schema
 
-We decide that the best way to convert out RDF data was to make a table rdf_triple that contains each of the triples. 
+We decide that the best way to convert out RDF data was to make a table
+rdf_triple that contains each of the triples. The columns are simply the
+subject, predicate, and object. 
 
-3) An example of a short (say 10-20 triples) input RDF graph and the corresponding relational database; your example should include prefix declarations.
+3) An example of a short (say 10-20 triples) input RDF graph and the
+corresponding relational database; your example should include prefix
+declarations.
 
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix foaf: <http://xmlns.com/foaf/0.1/> .
+@prefix rel: <http://www.perceive.net/schemas/relationship/> .
+<http://example.org/#green-goblin> rel:enemyOf <http://example.org/#spiderman> ;
+    							   rdf:type foaf:Person ;
+    							   foaf:name "Green Goblin" .
+<http://example.org/#spiderman> rel:enemyOf <http://example.org/#green-goblin> ;
+    							rdf:type foaf:Person ;
+    							foaf:name "Spiderman",
+    									  "Человек-паук"@ru .
+    									  "Human Spider"@en .
+@prefix ex: <http://example.org/> .
+ex:#spiderman foaf:rank 100.
 
+In Database:
+(Note that the russian was not added as we only keep the english versions)
+
+sub								|pred													|obj									|
+--------------------------------|-------------------------------------------------------|---------------------------------------|
+http://example.org/#green-goblin|http://www.perceive.net/schemas/relationship/enemyOf	|http://example.org/#spiderman			|
+http://example.org/#green-goblin|http://www.w3.org/1999/02/22-rdf-syntax-ns#type		|http://xmlns.com/foaf/0.1/				|
+http://example.org/#green-goblin|http://xmlns.com/foaf/0.1/name							|Green Goblin							|
+http://example.org/#spiderman	|http://www.perceive.net/schemas/relationship/enemyOf	|http://example.org/#green-goblin		|
+http://example.org/#spiderman	|http://www.w3.org/1999/02/22-rdf-syntax-ns#type		|http://xmlns.com/foaf/0.1/				|
+http://example.org/#spiderman	|http://xmlns.com/foaf/0.1/name							|Spiderman								|
+http://example.org/#spiderman	|http://xmlns.com/foaf/0.1/name							|Human Spider							|
+http://example.org/#spiderman	|http://xmlns.com/foaf/0.1/rank							|100									|
 
