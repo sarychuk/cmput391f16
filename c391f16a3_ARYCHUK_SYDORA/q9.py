@@ -41,6 +41,9 @@
 import sys
 import sqlite3
 
+def createSelect(selectStmt):
+	print(selectStmt)
+
 def main():
 
 	prefixdict = {}
@@ -50,6 +53,8 @@ def main():
 	selectAll = False
 	firstTriple = True
 	subjPredObj = []
+	selectParams = []
+	queryData = []
 	strLen = 0
 	fromClause = "FROM rdf_triple tri"
 
@@ -68,7 +73,33 @@ def main():
 	#SELECT * WHERE {
     	#?city rdf:type schema:City .
   		#?city dbo:country dbr:Canada .
+  		#?city dbo:elevation ?elevation .
+  		#?city dbo:motto ?motto .
+  		#?city dbo:populationTotal ?pop .
+
 	#} 
+
+	#expected output
+
+	#SELECT distinct c.subject as city, e.object as elevation, m.object as motto, p.object as population
+	#FROM rdf_triple c 
+	#left join rdf_triple ci
+	#on c.subject = ci.subject
+	#and ci.predicate = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type"
+	#and ci.object =  "http://schema.org/City" 
+	#left join rdf_triple co
+	#on c.subject = co.subject
+	#and co.predicate = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type"
+	#and co.object = "http://dbpedia.org/resource/Canada"
+	#left join rdf_triple m
+	#on c.subject = m.subject
+	#and m.predicate = "http://dbpedia.org/ontology/motto"
+	#left join rdf_triple p
+	#on c.subject = p.subject
+	#and p.predicate = "http://dbpedia.org/ontology/populationTotal"
+	#left join rdf_triple e
+	#on c.subject = e.subject
+	#and e.predicate  = "http://dbpedia.org/ontology/elevation"
 	
 	# Use dbConn.execute() to create the execution statement
 	for line in queryFile:
@@ -79,18 +110,18 @@ def main():
 				prefixdict[splitLine[1][0:-1]] = splitLine[2][1:-1]
 			elif(splitLine[0] == "SELECT"):
 				selectStart = True
-				selectStr += splitLine[0] + " "
 				if(splitLine[1] == "*"):
+					selectStr = splitLine[0:-1]
 					selectAll = True
 
 					#temp change back
-					selectStr += "subject" + " "
+					##selectStr += "subject" + " "
 
 					#add from tables 
-					selectStr += fromClause + " "
+					##selectStr += fromClause + " "
 
 					#add where clause
-					selectStr += splitLine[2] + " "
+					##selectStr += splitLine[2] + " "
 
 				else:
 					#handle individual items
@@ -103,8 +134,15 @@ def main():
 					tempStr = sqlStr
 					sqlStr = tempStr[0:-10]
 					continue
-				subjPredObj.append(splitLine)
-				sqlStr += selectStr
+
+				
+				if(splitLine[strLen - 1] == "."):
+					subjPredObj.append(splitLine[0:-1])
+				else:
+					subjPredObj.append(splitLine)
+				
+
+				#sqlStr += selectStr
 				if ("http" in splitLine[1]):
 					sqlStr += "tri.predicate = \"" + splitLine[1] + "\" "
 				else:
@@ -125,9 +163,62 @@ def main():
 	#	print(key + " = " + value)
 
 	print()
-	print(sqlStr)
+	#print(sqlStr)
 	print()
-	print(subjPredObj)
+	#left join rdf_triple ci
+	#on c.subject = ci.subject
+	#and ci.predicate = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type"
+	#and ci.object =  "http://schema.org/City" 
+	count = 0
+	for val in subjPredObj:
+		data = ""
+		for item in val:
+			if "?" in item:
+				if item[1:] not in selectParams:
+					selectParams.append(item[1:])
+		print(val)
+		count += 1
+		data = "left join rdf_triple r" + str(count)
+		data += " on r0.subject = r" + str(count) + ".subject "
+
+		if ("http" in val[1]):
+			data += "and r" + str(count) + ".predicate = \"" + val[1] + "\" ", count
+		else:
+			predSplit = val[1].split(":")
+			data += "and r" + str(count) + ".predicate = \"" + prefixdict[predSplit[0]] +  predSplit[1] + "\" "
+
+		if (":" in val[2]):
+			objSplit = val[2].split(":")
+			data += "and r" + str(count) + ".object = \"" + prefixdict[objSplit[0]] +  objSplit[1] + "\" "
+		elif ("?" in val[2]):
+			mt = True
+		else:
+			data += "and r" + str(count) + ".object = \"" + val[2] + "\" "
+		queryData.append(data)
+	#print(subjPredObj[0])
+	print()
+	print("Assign select string with variables")
+	print(selectParams)
+	print()
+	#SELECT distinct c.subject as city, e.object as elevation, m.object as motto, p.object as population
+	#FROM rdf_triple c
+	selectStr = "SELECT distinct "
+	for item in selectParams:
+		for val in subjPredObj:
+			if item == selectParams[0]:
+				selectStr += "r" + str(selectParams.index(item)) + ".subject as " + item + ", "
+				break
+			else:
+				if item in val[2]:
+					selectStr += "r" + str(subjPredObj.index(val) + 1) + ".object as " + item + ", "
+
+	tempSelect = selectStr
+	selectStr = tempSelect[0:-2]
+	selectStr += " FROM rdf_triple r0 "
+	print()
+	for element in queryData:
+		selectStr += element
+	print(selectStr)
 	print()
 
 	dbConn.close()

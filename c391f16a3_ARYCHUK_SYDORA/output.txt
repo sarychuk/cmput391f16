@@ -1,0 +1,19 @@
+SELECT distinct c.subject as city, e.object as elevation, m.object as motto, p.object as population
+FROM rdf_triple c 
+left join rdf_triple ci
+on c.subject = ci.subject
+and ci.predicate = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type"
+and ci.object =  "http://schema.org/City" 
+left join rdf_triple co
+on c.subject = co.subject
+and co.predicate = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type"
+and co.object = "http://dbpedia.org/resource/Canada"
+left join rdf_triple m
+on c.subject = m.subject
+and m.predicate = "http://dbpedia.org/ontology/motto"
+left join rdf_triple p
+on c.subject = p.subject
+and p.predicate = "http://dbpedia.org/ontology/populationTotal"
+left join rdf_triple e
+on c.subject = e.subject
+and e.predicate  = "http://dbpedia.org/ontology/elevation"
