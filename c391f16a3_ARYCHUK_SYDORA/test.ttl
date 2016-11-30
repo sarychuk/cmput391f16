@@ -9,4 +9,4 @@ SELECT * WHERE {
   	?city dbo:motto ?motto .
   	?city dbo:populationTotal ?pop .
  
-} 
+}

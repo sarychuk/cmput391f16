@@ -1,3 +1,4 @@
 Provide in a plain text ASCII file called q7.txt the SQL commands to create any indexes you find appropriate for your RDF store. Justify your choices. If you don't think indexes are necessary, explain why.
 
 
+We decided that indexes wouldn't be necessary in our created database, since we only have one table that consists of subject, predicate and object. Since we have to query all columns, we figure that it would not improve the query time. 
