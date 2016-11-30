@@ -9,6 +9,8 @@ Execution: 	Question 8 -- execute with the command "python3 q8.py <database> <rd
 
 			Question 9 -- execute with the command "python3 q9.py <database> <sparql query>" without the quotation marks, while the
 				database is the sqlite database and the query is the sparql query.
+				The test_with_error.ttl file should not show any results as the motto that has been attempted to filter
+				contains an extra "s" in the last part, thus removing it because it doesn't match.
 			  
 Python
 Libraries: 	sys
