@@ -8,6 +8,6 @@ SELECT * WHERE {
   	?city dbo:elevation ?elevation .
   	?city dbo:motto ?motto .
   	?city dbo:populationTotal ?pop .
-  	FILTER (regex(?motto, "Industry, Integrity, Progress"))
+  	FILTER (regex(?motto, "Industry, Integrity, Progresss"))
  
 } 

@@ -1,36 +1,3 @@
-#  For the sake of this assignment, you will deal with conjunctive SPARQL queries,
-#  without negation and without aggregations. At a minimum, your program must
-#  handle a fully specified query such as the one below, where the output is
-#  fully specified by variables that are used among the graph patterns.
-
-#PREFIX p:<URI>
-#SELECT ?v1 ?v2 ... ?vn
-#WHERE {
-#subj1 pred1 obj1 .
-#...
-#subjm predm objm
-#}
-
-#You can assume that:
-    #-There can be blank lines in the query file, consisting of zero or more
-    # space characters (e.g., \s or \t)
-    #-There can be zero or many PREFIX declarations, and that there will always
-    # be one SELECT ... WHERE statement in each query
-    #-Every PREFIX declaration comes in a separate line and before the SELECT 
-    # statement
-    #-Every non-blank line inside the WHERE clause contains a single subj pred 
-    # obj pattern or a single FILTER constraint
-    #-Every sub, pred, obj will be one of: a variable, a fully prefixed resource 
-    # (predicate or entity), or a literal.
-    #-All literals in any query will be enclosed with double quotes, and only 
-    # strings, integers, and decimal literals will be used.
-
-#If it helps, you may require that every variable in the SELECT appears in at 
-#least one pattern in the WHERE clause, and throw an error otherwise. Also, you 
-#can assume that every regex filter will be of the form:
-#FILTER (regex(?v, "<text>")), without any other operators.
-
-
 import sys
 import sqlite3
 
@@ -74,6 +41,32 @@ def parseData(queryData, selectParams, prefixdict):
 
 	return returnData
 
+# This function will go through the Filters and append them to the final statement
+def parseFilter(queryData, selectParams, regexdict):
+	returnData = []
+	data = ""
+
+	if regexdict:
+		returnData.append("WHERE ")
+		for value in regexdict:
+			#reset data string
+			data = ""
+			for type in queryData:
+				if value == selectParams[0]:
+					data += "r" + str(selectParams.index(value)) + ".subject like \"" + regexdict[value] + "\" and "
+					break
+				else:
+					if value in type[2]:
+						data += "r" + str(queryData.index(type) + 1) + ".object like \"" + regexdict[value] + "\" and "
+			returnData.append(data)
+	
+	#remove the trailing "and"
+	tempData = data
+	data = tempData[0:-4]
+	returnData[-1] = data
+
+	return returnData
+
 def main():
 	# Declarations
 	prefixdict = {}
@@ -83,6 +76,7 @@ def main():
 	selectAll = False
 	firstTriple = True
 	subjPredObj = []
+	regexdict = {}
 	strLen = 0
 
 	# Check arguments
@@ -111,14 +105,25 @@ def main():
 				#query commands
 				if (splitLine[0] == "}"):
 					continue
-				if(splitLine[strLen - 1] == "."):
+				if (splitLine[0] == "FILTER"):
+					quoteSplit = line.split("\"")
+					regexdict[splitLine[1][8:-1]] = quoteSplit[1]
+				elif(splitLine[strLen - 1] == "."):
 					subjPredObj.append(splitLine[0:-1])
 				else:
 					subjPredObj.append(splitLine)
 				
+
+	# get the select parameters
 	selectParams = parseSelectParams(subjPredObj)
+
+	# get the query data with left joins
 	queryData = parseData(subjPredObj, selectParams, prefixdict)
 
+	# get the filter data with Where clauses
+	filterData = parseFilter(subjPredObj, selectParams, regexdict)
+
+	# create the start of the select statement
 	selectStr = "SELECT distinct "
 	for item in selectParams:
 		for val in subjPredObj:
@@ -134,18 +139,26 @@ def main():
 	selectStr += " FROM rdf_triple r0 "
 	for element in queryData:
 		selectStr += element
+	for filt in filterData:
+		selectStr += filt
+
+	#execute the statement
 	cursor = dbConn.execute(selectStr)
 
+
+	# print out the headers
 	for item in selectParams:
 		print(item + " | ", end="")
 
 	print()
 
+	# print out the data from the select statement
 	for row in cursor:
 		for item in selectParams:
 			print(row[selectParams.index(item)] + " | ", end="")
 		print()
 
+	# close the files
 	dbConn.close()
 	queryFile.close()
 
